@@ -18,11 +18,14 @@ class AudioView(APIView):
     def get(self, request):
         data = None
         try:
-            device_name = request.get_full_path().split('?')[1].split('=')[1]
+            device_name = dict(request.data)['device_name'][0]
+            print("first name", device_name)
+            
          
         # getting device name
         except:
-            device_name = dict(request.data)['device_name'][0]
+            device_name = request.get_full_path().split('?')[1].split('=')[1]
+            print("second name", device_name)
 
         # filtering data from the database
         record = Audio.objects.filter(device_name=device_name, is_sent=False).order_by('id')#[:1]
