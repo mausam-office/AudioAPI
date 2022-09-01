@@ -52,5 +52,5 @@ class AudioView(APIView):
         return Response(data)
         # return Response(serializer.data)
         
-def index(request):
-    return HTTPResponse("<h1>API site</h1>")
+# def index(request):
+#     return HTTPResponse("<h1>API site</h1>")
