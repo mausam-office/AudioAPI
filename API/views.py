@@ -17,14 +17,18 @@ class AudioView(APIView):
     
     def get(self, request):
         data = None
+        try:
+            device_name = request.get_full_path().split('?')[1].split('=')[1]
+         
         # getting device name
-        device_name = dict(request.data)['device_name'][0]
+        except:
+            device_name = dict(request.data)['device_name'][0]
 
         # filtering data from the database
         record = Audio.objects.filter(device_name=device_name, is_sent=False).order_by('id')#[:1]
 
         try:
-            serializer = AudioSerializer(record, many=True)
+            serializer = AudioSerializer(record, many=True) 
             # print(serializer.data)
             # extracting base64 format of audio only 
             idx = serializer.data[0]['id']
