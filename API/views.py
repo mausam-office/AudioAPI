@@ -55,7 +55,7 @@ class AudioView(APIView):
             print("Exception")
 
             # when no record in the database 
-            return Response(status=status.HTTP_200_OK)
+            return Response({'audio_base64': ''})
         return Response(data)
         # return Response(serializer.data)
         
