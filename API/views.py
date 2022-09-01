@@ -1,10 +1,10 @@
+from http.client import HTTPResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Audio
 from .serializers import AudioSerializer
 
-from django.shortcuts import render
 
 
 class AudioView(APIView):
@@ -53,4 +53,4 @@ class AudioView(APIView):
         # return Response(serializer.data)
         
 def index(request):
-    return render(request, "<h1>API site</h1>")
+    return HTTPResponse("<h1>API site</h1>")
