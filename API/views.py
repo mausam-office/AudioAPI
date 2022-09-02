@@ -35,11 +35,11 @@ class AudioView(APIView):
             # print(serializer.data)
             # extracting base64 format of audio only 
             idx = serializer.data[0]['id']
-            audio_str = serializer.data[0]['audio_base64']
+            audio_str = serializer.data[0]['audio_base64_text']
             # print(idx, audio_str)
 
             # formating the data into dictionary
-            data = {'audio_base64': audio_str}
+            data = {'audio_base64_text': audio_str}
             # print(data)
 
             ## update
@@ -55,7 +55,7 @@ class AudioView(APIView):
             print("Exception")
 
             # when no record in the database 
-            return Response({'audio_base64': ''})
+            return Response({'audio_base64_text': ''})
         return Response(data)
         # return Response(serializer.data)
         
