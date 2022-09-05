@@ -62,7 +62,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
         except:
             device_name = request.get_full_path().split('?')[1].split('=')[1]
             print("except block")
-        print(dict(request.data))
+        print(type(request.data))
 
         # To check if the device is registered
         devices = ClientDevices.objects.filter(device_name=device_name)
@@ -71,6 +71,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
         if len(devices) == 0:
             """When the device is not registered"""
             print("registration maa")
+
             serializer = ClientDevicesSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -142,26 +143,28 @@ class ClientDevicesListView(APIView):
 
         format = "%Y-%m-%dT%H:%M:%S"
         format_current = "%Y-%m-%d %H:%M:%S"
+        try:
+            for data in serializer.data:
+                data = dict(data)
+                device_name = data['device_name']
+                # split('.')[0] -> removes millisecond part
+                last_req_time = data['last_req_time'].split('.')[0]   # In string of ISO format, convert it into  datetime format.
+                last_req_time = datetime.strptime(last_req_time, format)
+                
+                current = datetime.strptime(datetime.now().strftime(format_current), format_current)
+                diff = current - last_req_time
+                diff_minutes = diff.total_seconds()/60
+                
+                device_record = ClientDevices.objects.get(device_name=device_name)
+                if diff_minutes > 2:
+                    device_record.is_active = False
+                else:
+                    device_record.is_active = True
+                device_record.save()
 
-        for data in serializer.data:
-            data = dict(data)
-            device_name = data['device_name']
-            # split('.')[0] -> removes millisecond part
-            last_req_time = data['last_req_time'].split('.')[0]   # In string of ISO format, convert it into  datetime format.
-            last_req_time = datetime.strptime(last_req_time, format)
-            
-            current = datetime.strptime(datetime.now().strftime(format_current), format_current)
-            diff = current - last_req_time
-            diff_minutes = diff.total_seconds()/60
-            
-            device_record = ClientDevices.objects.get(device_name=device_name)
-            if diff_minutes > 2:
-                device_record.is_active = False
-            else:
-                device_record.is_active = True
-            device_record.save()
-
-            print(device_name, last_req_time, current, diff_minutes)
+                print(device_name, last_req_time, current, diff_minutes)
+        except:
+            pass
 
         devices = ClientDevices.objects.all()
         serializer = ClientDevicesSerializer(devices, many=True)

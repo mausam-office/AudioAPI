@@ -9,4 +9,4 @@ class AudioSerializer(serializers.ModelSerializer):
 class ClientDevicesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientDevices
-        fields = "__all__"
+        fields = '__all__'
