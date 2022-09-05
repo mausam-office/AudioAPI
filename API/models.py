@@ -14,4 +14,5 @@ class ClientDevices(models.Model):
     device_name = models.CharField(max_length=150, blank=False)
     is_approved = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+    last_req_time = models.DateTimeField(auto_now=False)
 

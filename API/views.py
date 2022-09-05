@@ -21,27 +21,21 @@ class AudioView(APIView):
         # getting device name
         try:
             device_name = dict(request.data)['device_name'][0]
-            print("first name", device_name)
-
         except:
             device_name = request.get_full_path().split('?')[1].split('=')[1]
-            print("second name", device_name)
 
         # filtering data from the database
         record = Audio.objects.filter(device_name=device_name, is_sent=False).order_by('id')#[:1]
 
         try:
             serializer = AudioSerializer(record, many=True)
-            # print(serializer.data)
-            # extracting base64 format of audio only 
+            # extracting index and base64 format of audio only 
             idx = serializer.data[0]['id']
             audio_str = serializer.data[0]['audio_base64_text']
             # print(idx, audio_str)
 
             # formating the data into dictionary
             data = {'audio_base64_text': audio_str}
-            # print(data)
-
             ## update
             row = Audio.objects.get(id=idx)
             row.is_sent = True
@@ -72,8 +66,8 @@ class DeviceRegistration_AudioExtractionView(APIView):
 
         # To check if the device is registered
         devices = ClientDevices.objects.filter(device_name=device_name)
-
         # print(devices, len(devices))
+
         if len(devices) == 0:
             """When the device is not registered"""
             print("registration maa")
@@ -83,17 +77,27 @@ class DeviceRegistration_AudioExtractionView(APIView):
                 return Response({"Acknowledge":"Registered."}, status=status.HTTP_201_CREATED)
             return Response({"Acknowledge":"Not Registered."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Update Last Request time only if it is approved.
+        try:
+            device_record = ClientDevices.objects.filter(is_approved=True).get(device_name=device_name)
+            print(device_record)
+            if device_record:
+                device_record.last_req_time =  datetime.now()
+                device_record.save()
+        except:
+            print("Not an approved devices")
+            return Response({})
+
         # To check if the device is registered and approved aswell
         devices = ClientDevices.objects.filter(device_name=device_name, is_approved=True)
         print(devices)
-        if len(devices) != 0:
-            """Here should be the code to check if there is any data"""
-            data = None
-            print("audio axtraction maa")
 
+        if len(devices) != 0:
+            """check if there is any data for corresponding device"""
+            data = None
+            # print("audio axtraction maa")
             # filtering data from the database
             record = Audio.objects.filter(device_name=device_name, is_sent=False).order_by('id')[:1]
-
             try:
                 serializer = AudioSerializer(record, many=True)
                 # print(serializer.data)
@@ -112,7 +116,6 @@ class DeviceRegistration_AudioExtractionView(APIView):
                 row.is_sent = True
                 # row.time = datetime
                 row.save()
-                print("After Update")
 
                 # # deleting the record from the database
                 # Audio.objects.get(id=idx).delete()
@@ -127,23 +130,44 @@ class DeviceRegistration_AudioExtractionView(APIView):
         return Response({})
 
 
+
+
 class ClientDevicesListView(APIView):
     # TODO also add validation for `is_active`
     def get(self, request):
-        # filtering registered devices from the database
-        devices = ClientDevices.objects.all()
+        # filtering approved devices from the database
+        devices = ClientDevices.objects.filter(is_approved=True)
         serializer = ClientDevicesSerializer(devices, many=True)
-        registered_devices = serializer.data
+        # registered_devices = serializer.data
+
+        format = "%Y-%m-%dT%H:%M:%S"
+        format_current = "%Y-%m-%d %H:%M:%S"
 
         for data in serializer.data:
             data = dict(data)
             device_name = data['device_name']
-            record = Audio.objects.filter(device_name=device_name).order_by('-id')[:1]
+            # split('.')[0] -> removes millisecond part
+            last_req_time = data['last_req_time'].split('.')[0]   # In string of ISO format, convert it into  datetime format.
+            last_req_time = datetime.strptime(last_req_time, format)
             
-            print(len(record))
+            current = datetime.strptime(datetime.now().strftime(format_current), format_current)
+            diff = current - last_req_time
+            diff_minutes = diff.total_seconds()/60
+            
+            device_record = ClientDevices.objects.get(device_name=device_name)
+            if diff_minutes > 2:
+                device_record.is_active = False
+            else:
+                device_record.is_active = True
+            device_record.save()
 
-        
-        return Response(registered_devices)    # array of all filtered records
+            print(device_name, last_req_time, current, diff_minutes)
+
+        devices = ClientDevices.objects.filter(is_approved=True)
+        serializer = ClientDevicesSerializer(devices, many=True)
+        return Response(serializer.data)    # array of all filtered records
+
+
 
 
 class ClientDeviceApprovalView(APIView):
