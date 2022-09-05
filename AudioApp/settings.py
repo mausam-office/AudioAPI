@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-xx!rel+%chb9+s_jo9a7%^2@y%+#r2mg)sk)b*#l+y@pzl!$3=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'atm-audio-api.herokuapp.com']    # for heroku
-# ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = ['127.0.0.1', 'atm-audio-api.herokuapp.com']    # for heroku
+ALLOWED_HOSTS = []     # For  Local Machine
 
 
 # Application definition

@@ -6,8 +6,12 @@ class Audio(models.Model):
     audio_base64 = models.CharField(max_length=130000, null=True)
     is_sent = models.BooleanField(default=False)
     audio_base64_text = models.TextField(default='')
-    # TODO add a field to for a
+    # added a field to determine inactive devices.
+    last_updated = models.DateTimeField(auto_now=True)
 
-# class DeviceApproval(models.Model):
-#     device_name = models.CharField(max_length=150)
-#     approval_status = models.BooleanField(default=False)
+
+class ClientDevices(models.Model):
+    device_name = models.CharField(max_length=150, blank=False)
+    is_approved = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+

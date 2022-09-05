@@ -27,7 +27,9 @@ from API import views as api_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('audioapi/', api_view.AudioView.as_view()),
-    # path('', include('API.urls')),
+    path('registration/', api_view.DeviceRegistration_AudioExtractionView.as_view()),
+    path('devices/', api_view.ClientDevicesListView.as_view()),
+    path('approval/', api_view.ClientDeviceApprovalView.as_view()),
 
     # url(r'^media/(?P<path>.*)$', serve,{'document_root':       settings.MEDIA_ROOT}), 
     # url(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
