@@ -104,7 +104,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
                 # print(idx, audio_str)
 
                 # formating the data into dictionary
-                data = {'audio_base64_text': audio_str, 'time': time}
+                data = {'audio_base64_text': audio_str}
                 # print(data)
 
                 ## update
