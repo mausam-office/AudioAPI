@@ -163,7 +163,7 @@ class ClientDevicesListView(APIView):
 
             print(device_name, last_req_time, current, diff_minutes)
 
-        devices = ClientDevices.objects.filter(is_approved=True)
+        devices = ClientDevices.objects.all()
         serializer = ClientDevicesSerializer(devices, many=True)
         return Response(serializer.data)    # array of all filtered records
 
