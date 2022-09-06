@@ -10,7 +10,24 @@ from datetime import datetime
 
 class AudioView(APIView):
     def post(self, request):
-        serializer = AudioSerializer(data=request.data)
+        try:
+            req_str = request.get_full_path().split('?')[1].split('&')
+            data = QueryDict('', mutable=True)
+            temp = {}
+            for item in req_str:
+                item = item.split('=')
+                if item[0]=='is_sent':
+                    temp['is_sent'] = False
+                    continue
+                temp[item[0]] = item[1]
+            print(temp)
+            data.update(temp)
+        except:
+            data = request.data
+
+
+        serializer = AudioSerializer(data=data)
+        
         if serializer.is_valid():
             serializer.save()
             return Response({"Acknowledge":"Successfully done."}, status=status.HTTP_201_CREATED)
