@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Audio, ClientDevices
 from .serializers import AudioSerializer, ClientDevicesSerializer
+from django.http import QueryDict
 from datetime import datetime
 
 
@@ -58,11 +59,18 @@ class DeviceRegistration_AudioExtractionView(APIView):
         # getting device name
         try:
             device_name = dict(request.data)['device_name'][0]
+            data = request.data
+            print(device_name)
             print("try block")
         except:
             device_name = request.get_full_path().split('?')[1].split('=')[1]
+            request = QueryDict('', mutable=True)
+            request.update({'device_name' : device_name})
+            data = request
             print("except block")
-        print(type(request.data))
+
+        print("Request.data",data)
+        print("yeha")
 
         # To check if the device is registered
         devices = ClientDevices.objects.filter(device_name=device_name)
@@ -72,7 +80,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
             """When the device is not registered"""
             print("registration maa")
 
-            serializer = ClientDevicesSerializer(data=request.data)
+            serializer = ClientDevicesSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 return Response({"Acknowledge":"Registered."}, status=status.HTTP_201_CREATED)
@@ -154,6 +162,7 @@ class ClientDevicesListView(APIView):
                 current = datetime.strptime(datetime.now().strftime(format_current), format_current)
                 diff = current - last_req_time
                 diff_minutes = diff.total_seconds()/60
+                print('diff_minutes',diff_minutes)
                 
                 device_record = ClientDevices.objects.get(device_name=device_name)
                 if diff_minutes > 2:
@@ -168,6 +177,7 @@ class ClientDevicesListView(APIView):
 
         devices = ClientDevices.objects.all()
         serializer = ClientDevicesSerializer(devices, many=True)
+        data = {}
         return Response(serializer.data)    # array of all filtered records
 
 
@@ -179,14 +189,16 @@ class ClientDeviceApprovalView(APIView):
             device_name = dict(request.data)['device_name'][0]
         except:
             device_name = request.get_full_path().split('?')[1].split('=')[1]
+        try:
+            device = ClientDevices.objects.filter(device_name=device_name)
+            serializer = ClientDevicesSerializer(device, many=True)
+            idx = serializer.data[0]['id']
+            device = ClientDevices.objects.get(id=idx)
 
-        device = ClientDevices.objects.filter(device_name=device_name)
-        serializer = ClientDevicesSerializer(device, many=True)
-        idx = serializer.data[0]['id']
-        device = ClientDevices.objects.get(id=idx)
+            device.is_approved = True
+            device.save()
 
-        device.is_approved = True
-        device.save()
-
-        return Response({'Acknowledge' : 'Approved'})
+            return Response({'Acknowledge' : 'Approved'})
+        except:
+            return Response({'Acknowledge' : 'Not Approved'})
 
