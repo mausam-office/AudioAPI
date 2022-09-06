@@ -151,6 +151,7 @@ class ClientDevicesListView(APIView):
 
         format = "%Y-%m-%dT%H:%M:%S"
         format_current = "%Y-%m-%d %H:%M:%S"
+        #Updating request time
         try:
             for data in serializer.data:
                 data = dict(data)
