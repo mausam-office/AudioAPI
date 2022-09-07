@@ -27,7 +27,7 @@ from API import views as api_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('audioapi/', api_view.AudioView.as_view()),
-    path('registration/', api_view.DeviceRegistration_AudioExtractionView.as_view()),
+    path('registration/audiofetch/', api_view.DeviceRegistration_AudioExtractionView.as_view()),
     path('devices/', api_view.ClientDevicesListView.as_view()),
     path('approval/', api_view.ClientDeviceApprovalView.as_view()),
     path('audioslist/', api_view.BackupAndDeleteView.as_view()),

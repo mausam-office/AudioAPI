@@ -6,6 +6,7 @@ from .serializers import AudioSerializer, ClientDevicesSerializer, FilteredAudio
 # from django.http import QueryDict
 # from http.client import HTTPResponse
 from datetime import datetime
+import pytz
 
 
 class AudioView(APIView):
@@ -61,7 +62,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
             device_record = ClientDevices.objects.filter(is_approved=True).get(device_name=device_name)
             # print(device_record)
             if device_record:
-                device_record.last_req_time =  datetime.now()
+                device_record.last_req_time =  datetime.now(pytz.timezone('Asia/Kathmandu'))
                 device_record.save()
         except:
             print("Not an approved devices")
