@@ -12,20 +12,19 @@ class AudioView(APIView):
     def post(self, request):
         try:
             data = request.POST
-            # req_str = request.get_full_path().split('?')[1].split('&')
-            # data = QueryDict('', mutable=True)
-            # temp = {}
-            # for item in req_str:
-            #     item = item.split('=')
-            #     if item[0]=='is_sent':
-            #         temp['is_sent'] = False
-            #         continue
-            #     temp[item[0]] = item[1]
-            # print(temp)
-            # data.update(temp)
+            """ req_str = request.get_full_path().split('?')[1].split('&')
+            data = QueryDict('', mutable=True)
+            temp = {}
+            for item in req_str:
+                item = item.split('=')
+                if item[0]=='is_sent':
+                    temp['is_sent'] = False
+                    continue
+                temp[item[0]] = item[1]
+            print(temp)
+            data.update(temp) """
         except:
             data = request.data
-
 
         serializer = AudioSerializer(data=data)
         if serializer.is_valid():
@@ -33,71 +32,22 @@ class AudioView(APIView):
             return Response({"Acknowledge":"Successfully done."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    # This get should be depriciated.
-    """ def get(self, request):
-        data = None
-        # getting device name
-        try:
-            device_name = dict(request.data)['device_name'][0]
-        except:
-            device_name = request.get_full_path().split('?')[1].split('=')[1]
-
-        # filtering data from the database
-        record = Audio.objects.filter(device_name=device_name, is_sent=False).order_by('id')#[:1]
-
-        try:
-            serializer = AudioSerializer(record, many=True)
-            # extracting index and base64 format of audio only 
-            idx = serializer.data[0]['id']
-            audio_str = serializer.data[0]['audio_base64_text']
-            # print(idx, audio_str)
-
-            # formating the data into dictionary
-            data = {'audio_base64_text': audio_str}
-            ## update
-            row = Audio.objects.get(id=idx)
-            row.is_sent = True
-            row.save()
-            print("After Updatae")
-
-            # # deleting the record from the database
-            # Audio.objects.get(id=idx).delete()
-
-        except:
-            print("Exception")
-
-            # when no record in the database 
-            return Response({'audio_base64_text': ''})
-        return Response(data) """
-
 
 class DeviceRegistration_AudioExtractionView(APIView):
     def get(self, request):
         # getting device name
         try:
+            device_name = request.GET['device_name']
+            data = request.GET 
+        except:
             device_name = dict(request.data)['device_name'][0]
             data = request.data
-            # print(device_name)
-            # print("try block")
-        except:
-            # device_name = request.get_full_path().split('?')[1].split('=')[1]
-            # request = QueryDict('', mutable=True)
-            # request.update({'device_name' : device_name})
-            # data = request
-            device_name = request.GET['device_name']
-            data = request.GET
-            # print("except block")
-
-        # print("Request.data", data)
 
         # To check if the device is registered
         devices = ClientDevices.objects.filter(device_name=device_name)
-        # print(devices, len(devices))
 
         if len(devices) == 0:
             """When the device is not registered"""
-            # print("registration maa")
-
             serializer = ClientDevicesSerializer(data=data)
             if serializer.is_valid():
                 serializer.save()
@@ -117,38 +67,31 @@ class DeviceRegistration_AudioExtractionView(APIView):
 
         # To check if the device is registered and approved aswell
         devices = ClientDevices.objects.filter(device_name=device_name, is_approved=True)
-        # print(devices)
 
         if len(devices) != 0:
             """check if there is any data for corresponding device"""
             data = None
-            # print("audio axtraction maa")
             # filtering data from the database
             record = Audio.objects.filter(device_name=device_name, is_sent=False).order_by('id')[:1]
             try:
                 serializer = AudioSerializer(record, many=True)
-                # print(serializer.data)
+
                 # extracting base64 format of audio only 
                 idx = serializer.data[0]['id']
                 audio_str = serializer.data[0]['audio_base64_text']
-                time = serializer.data[0]['last_updated']
-                # print(idx, audio_str)
 
                 # formating the data into dictionary
                 data = {'audio_base64_text': audio_str}
-                # print(data)
 
                 ## update
                 row = Audio.objects.get(id=idx)
                 row.is_sent = True
-                # row.time = datetime
                 row.save()
 
                 # # deleting the record from the database
                 # Audio.objects.get(id=idx).delete()
+                Audio.objects.all()
             except:
-                print("Exception")
-
                 # when no record in the database 
                 return Response({'audio_base64_text': ''})
             return Response(data)
@@ -163,7 +106,6 @@ class ClientDevicesListView(APIView):
         # filtering approved devices from the database
         devices = ClientDevices.objects.filter(is_approved=True)
         serializer = ClientDevicesSerializer(devices, many=True)
-        # registered_devices = serializer.data
 
         format = "%Y-%m-%dT%H:%M:%S"
         format_current = "%Y-%m-%d %H:%M:%S"
@@ -173,6 +115,7 @@ class ClientDevicesListView(APIView):
                 data = dict(data)
                 device_name = data['device_name']
                 # split('.')[0] -> removes millisecond part
+                print(data['last_req_time'])
                 last_req_time = data['last_req_time'].split('.')[0]   # In string of ISO format, convert it into  datetime format.
                 last_req_time = datetime.strptime(last_req_time, format)
                 
@@ -193,7 +136,6 @@ class ClientDevicesListView(APIView):
 
         devices = ClientDevices.objects.all()
         serializer = ClientDevicesSerializer(devices, many=True)
-        data = {}
         return Response(serializer.data)    # array of all filtered records
 
 
@@ -202,10 +144,9 @@ class ClientDevicesListView(APIView):
 class ClientDeviceApprovalView(APIView):
     def get(self, request):
         try:
-            device_name = dict(request.data)['device_name'][0]
-        except:
             device_name = request.GET['device_name']
-            # device_name = request.get_full_path().split('?')[1].split('=')[1]
+        except:
+            device_name = dict(request.data)['device_name'][0]
         print(request.GET, device_name)
         try:
             device = ClientDevices.objects.filter(device_name=device_name)
