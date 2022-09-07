@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-xx!rel+%chb9+s_jo9a7%^2@y%+#r2mg)sk)b*#l+y@pzl!$3=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'atm-audio-api.herokuapp.com']    # for heroku
-# ALLOWED_HOSTS = []     # For  Local Machine
+# ALLOWED_HOSTS = ['127.0.0.1', 'atm-audio-api.herokuapp.com']    # for heroku
+ALLOWED_HOSTS = []     # For  Local Machine
 
 
 # Application definition
@@ -109,12 +109,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kathmandu'
 
 USE_I18N = True
 
 #IF USE_TZ is False, django uses local timezone by default.
-USE_TZ = False
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
