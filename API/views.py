@@ -1,10 +1,10 @@
-from http.client import HTTPResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Audio, ClientDevices
-from .serializers import AudioSerializer, ClientDevicesSerializer
-from django.http import QueryDict
+from .serializers import AudioSerializer, ClientDevicesSerializer, FilteredAudiosLogSerializer
+# from django.http import QueryDict
+# from http.client import HTTPResponse
 from datetime import datetime
 
 
@@ -12,6 +12,7 @@ class AudioView(APIView):
     def post(self, request):
         try:
             data = request.POST
+            print('Try: ', data)
             """ req_str = request.get_full_path().split('?')[1].split('&')
             data = QueryDict('', mutable=True)
             temp = {}
@@ -25,6 +26,7 @@ class AudioView(APIView):
             data.update(temp) """
         except:
             data = request.data
+            print('Except: ', data)
 
         serializer = AudioSerializer(data=data)
         if serializer.is_valid():
@@ -161,3 +163,14 @@ class ClientDeviceApprovalView(APIView):
         except:
             return Response({'Acknowledge' : 'Not Approved'})
 
+
+class BackupAndDeleteView(APIView):
+    def get(self, request):
+        # call backup function to write the log
+        audios = Audio.objects.filter(is_sent=True)
+        serializer = FilteredAudiosLogSerializer(audios, many=True)
+        response_data = serializer.data
+        # print(serializer.data)
+        return Response(response_data)
+
+        
