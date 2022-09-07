@@ -62,7 +62,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
             device_record = ClientDevices.objects.filter(is_approved=True).get(device_name=device_name)
             # print(device_record)
             if device_record:
-                device_record.last_req_time =  datetime.now(pytz.timezone('Asia/Kathmandu'))
+                device_record.last_req_time =  datetime.now()
                 device_record.save()
         except:
             print("Not an approved devices")
@@ -118,11 +118,12 @@ class ClientDevicesListView(APIView):
                 data = dict(data)
                 device_name = data['device_name']
                 # split('.')[0] -> removes millisecond part
-                print(data['last_req_time'])
+                
                 last_req_time = data['last_req_time'].split('.')[0]   # In string of ISO format, convert it into  datetime format.
                 last_req_time = datetime.strptime(last_req_time, format)
                 
                 current = datetime.strptime(datetime.now().strftime(format_current), format_current)
+                print(str(last_req_time), str(current))
                 diff = current - last_req_time
                 diff_minutes = diff.total_seconds()/60
                 # print('diff_minutes',diff_minutes)
