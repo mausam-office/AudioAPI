@@ -123,7 +123,6 @@ class ClientDevicesListView(APIView):
                 last_req_time = datetime.strptime(last_req_time, format)
                 
                 current = datetime.strptime(datetime.now().strftime(format_current), format_current)
-                print(str(last_req_time), str(current))
                 diff = current - last_req_time
                 diff_minutes = diff.total_seconds()/60
                 # print('diff_minutes',diff_minutes)
@@ -134,7 +133,7 @@ class ClientDevicesListView(APIView):
                 else:
                     device_record.is_active = True
                 device_record.save()
-                # print(device_name, last_req_time, current, diff_minutes)
+                print(device_name, last_req_time, current, diff_minutes)
         except:
             pass
 
