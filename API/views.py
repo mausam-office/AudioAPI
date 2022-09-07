@@ -11,7 +11,7 @@ from datetime import datetime
 class AudioView(APIView):
     def post(self, request):
         try:
-            data = request.POST
+            data = request.data
             print('Try: ', data)
             """ req_str = request.get_full_path().split('?')[1].split('&')
             data = QueryDict('', mutable=True)
@@ -25,7 +25,7 @@ class AudioView(APIView):
             print(temp)
             data.update(temp) """
         except:
-            data = request.data
+            data = request.POST
             print('Except: ', data)
 
         serializer = AudioSerializer(data=data)
