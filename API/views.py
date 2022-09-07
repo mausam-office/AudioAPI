@@ -11,30 +11,30 @@ from datetime import datetime
 class AudioView(APIView):
     def post(self, request):
         try:
-            req_str = request.get_full_path().split('?')[1].split('&')
-            data = QueryDict('', mutable=True)
-            temp = {}
-            for item in req_str:
-                item = item.split('=')
-                if item[0]=='is_sent':
-                    temp['is_sent'] = False
-                    continue
-                temp[item[0]] = item[1]
-            print(temp)
-            data.update(temp)
+            data = request.POST
+            # req_str = request.get_full_path().split('?')[1].split('&')
+            # data = QueryDict('', mutable=True)
+            # temp = {}
+            # for item in req_str:
+            #     item = item.split('=')
+            #     if item[0]=='is_sent':
+            #         temp['is_sent'] = False
+            #         continue
+            #     temp[item[0]] = item[1]
+            # print(temp)
+            # data.update(temp)
         except:
             data = request.data
 
 
         serializer = AudioSerializer(data=data)
-        
         if serializer.is_valid():
             serializer.save()
             return Response({"Acknowledge":"Successfully done."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     # This get should be depriciated.
-    def get(self, request):
+    """ def get(self, request):
         data = None
         # getting device name
         try:
@@ -68,7 +68,7 @@ class AudioView(APIView):
 
             # when no record in the database 
             return Response({'audio_base64_text': ''})
-        return Response(data)
+        return Response(data) """
 
 
 class DeviceRegistration_AudioExtractionView(APIView):
@@ -77,17 +77,18 @@ class DeviceRegistration_AudioExtractionView(APIView):
         try:
             device_name = dict(request.data)['device_name'][0]
             data = request.data
-            print(device_name)
-            print("try block")
+            # print(device_name)
+            # print("try block")
         except:
-            device_name = request.get_full_path().split('?')[1].split('=')[1]
-            request = QueryDict('', mutable=True)
-            request.update({'device_name' : device_name})
-            data = request
-            print("except block")
+            # device_name = request.get_full_path().split('?')[1].split('=')[1]
+            # request = QueryDict('', mutable=True)
+            # request.update({'device_name' : device_name})
+            # data = request
+            device_name = request.GET['device_name']
+            data = request.GET
+            # print("except block")
 
-        print("Request.data",data)
-        print("yeha")
+        # print("Request.data", data)
 
         # To check if the device is registered
         devices = ClientDevices.objects.filter(device_name=device_name)
@@ -95,7 +96,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
 
         if len(devices) == 0:
             """When the device is not registered"""
-            print("registration maa")
+            # print("registration maa")
 
             serializer = ClientDevicesSerializer(data=data)
             if serializer.is_valid():
@@ -106,7 +107,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
         # Update Last Request time only if it is approved.
         try:
             device_record = ClientDevices.objects.filter(is_approved=True).get(device_name=device_name)
-            print(device_record)
+            # print(device_record)
             if device_record:
                 device_record.last_req_time =  datetime.now()
                 device_record.save()
@@ -116,7 +117,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
 
         # To check if the device is registered and approved aswell
         devices = ClientDevices.objects.filter(device_name=device_name, is_approved=True)
-        print(devices)
+        # print(devices)
 
         if len(devices) != 0:
             """check if there is any data for corresponding device"""
@@ -145,7 +146,6 @@ class DeviceRegistration_AudioExtractionView(APIView):
 
                 # # deleting the record from the database
                 # Audio.objects.get(id=idx).delete()
-
             except:
                 print("Exception")
 
@@ -159,7 +159,6 @@ class DeviceRegistration_AudioExtractionView(APIView):
 
 
 class ClientDevicesListView(APIView):
-    # TODO also add validation for `is_active`
     def get(self, request):
         # filtering approved devices from the database
         devices = ClientDevices.objects.filter(is_approved=True)
@@ -180,7 +179,7 @@ class ClientDevicesListView(APIView):
                 current = datetime.strptime(datetime.now().strftime(format_current), format_current)
                 diff = current - last_req_time
                 diff_minutes = diff.total_seconds()/60
-                print('diff_minutes',diff_minutes)
+                # print('diff_minutes',diff_minutes)
                 
                 device_record = ClientDevices.objects.get(device_name=device_name)
                 if diff_minutes > 2:
@@ -188,8 +187,7 @@ class ClientDevicesListView(APIView):
                 else:
                     device_record.is_active = True
                 device_record.save()
-
-                print(device_name, last_req_time, current, diff_minutes)
+                # print(device_name, last_req_time, current, diff_minutes)
         except:
             pass
 
@@ -206,7 +204,9 @@ class ClientDeviceApprovalView(APIView):
         try:
             device_name = dict(request.data)['device_name'][0]
         except:
-            device_name = request.get_full_path().split('?')[1].split('=')[1]
+            device_name = request.GET['device_name']
+            # device_name = request.get_full_path().split('?')[1].split('=')[1]
+        print(request.GET, device_name)
         try:
             device = ClientDevices.objects.filter(device_name=device_name)
             serializer = ClientDevicesSerializer(device, many=True)
