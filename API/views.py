@@ -60,7 +60,7 @@ class DeviceRegistration_AudioExtractionView(APIView):
         # Update Last Request time only if it is approved.
         try:
             device_record = ClientDevices.objects.filter(is_approved=True).get(device_name=device_name)
-            # print(device_record)
+            print('For updating: ', device_record)
             if device_record:
                 device_record.last_req_time =  datetime.now()
                 device_record.save()
@@ -109,6 +109,7 @@ class ClientDevicesListView(APIView):
         # filtering approved devices from the database
         devices = ClientDevices.objects.filter(is_approved=True)
         serializer = ClientDevicesSerializer(devices, many=True)
+        
 
         format = "%Y-%m-%dT%H:%M:%S"
         format_current = "%Y-%m-%d %H:%M:%S"
@@ -118,16 +119,18 @@ class ClientDevicesListView(APIView):
                 data = dict(data)
                 device_name = data['device_name']
                 # split('.')[0] -> removes millisecond part
-                
+                # print('last req time: ',  data['last_req_time'])
                 last_req_time = data['last_req_time'].split('.')[0]   # In string of ISO format, convert it into  datetime format.
                 last_req_time = datetime.strptime(last_req_time, format)
                 
                 current = datetime.strptime(datetime.now().strftime(format_current), format_current)
+                # print('current: ', current)
                 diff = current - last_req_time
                 diff_minutes = diff.total_seconds()/60
                 # print('diff_minutes',diff_minutes)
                 
                 device_record = ClientDevices.objects.get(device_name=device_name)
+                print(device_record)
                 if diff_minutes > 2:
                     device_record.is_active = False
                 else:
@@ -168,10 +171,10 @@ class ClientDeviceApprovalView(APIView):
 class BackupAndDeleteView(APIView):
     def get(self, request):
         # call backup function to write the log
-        audios = Audio.objects.filter(is_sent=True)
-        serializer = FilteredAudiosLogSerializer(audios, many=True)
-        response_data = serializer.data
+        audios = Audio.objects.filter(is_sent=True).delete()
+        # serializer = FilteredAudiosLogSerializer(audios, many=True)
+        # response_data = serializer.data
         # print(serializer.data)
-        return Response(response_data)
+        return Response({'Acknowledge':'Deleted Played Audios.'})
 
         
