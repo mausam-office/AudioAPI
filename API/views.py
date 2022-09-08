@@ -144,6 +144,7 @@ class ClientDevicesListView(APIView):
 
         devices = ClientDevices.objects.all()
         serializer = ClientDevicesSerializer(devices, many=True)
+        # print(serializer.data)
         return Response(serializer.data)    # array of all filtered records
 
 
@@ -184,12 +185,9 @@ class BackupAndDeleteView(APIView):
                 log_data[device_name] = []
             log_data[device_name].append(row['last_updated'].replace('T', ' '))
             
-            audio_record = Audio.objects.get(id=row['id'])
+            # audio_record = Audio.objects.get(id=row['id'])
             # We need to delete the audio records after getting timestamp
-            audio_record.delete()
-            # Updating is just for testing
-            # audio_record.last_updated = datetime.now()
-            # audio_record.save()
+            # audio_record.delete()
 
         return Response(log_data)
 
