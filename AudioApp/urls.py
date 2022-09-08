@@ -30,7 +30,7 @@ urlpatterns = [
     path('registration/audiofetch/', api_view.DeviceRegistration_AudioExtractionView.as_view()),
     path('devices/', api_view.ClientDevicesListView.as_view()),
     path('approval/', api_view.ClientDeviceApprovalView.as_view()),
-    path('audioslist/', api_view.BackupAndDeleteView.as_view()),
+    path('log/', api_view.BackupAndDeleteView.as_view()),
 
     # url(r'^media/(?P<path>.*)$', serve,{'document_root':       settings.MEDIA_ROOT}), 
     # url(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

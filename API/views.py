@@ -8,6 +8,8 @@ from .serializers import AudioSerializer, ClientDevicesSerializer, FilteredAudio
 from datetime import datetime
 import pytz
 
+from API import serializers
+
 
 class AudioView(APIView):
     def post(self, request):
@@ -170,11 +172,25 @@ class ClientDeviceApprovalView(APIView):
 
 class BackupAndDeleteView(APIView):
     def get(self, request):
-        # call backup function to write the log
-        audios = Audio.objects.filter(is_sent=True).delete()
-        # serializer = FilteredAudiosLogSerializer(audios, many=True)
-        # response_data = serializer.data
-        # print(serializer.data)
-        return Response({'Acknowledge':'Deleted Played Audios.'})
+        
+        # Delete the records once the timestamp is 
+        audio_records = Audio.objects.filter(is_sent=True)
+        serializer = AudioSerializer(audio_records, many=True)
+
+        log_data = {}
+        for row in serializer.data:
+            device_name = row['device_name']
+            if device_name not in log_data:
+                log_data[device_name] = []
+            log_data[device_name].append(row['last_updated'].replace('T', ' '))
+            
+            audio_record = Audio.objects.get(id=row['id'])
+            # We need to delete the audio records after getting timestamp
+            audio_record.delete()
+            # Updating is just for testing
+            # audio_record.last_updated = datetime.now()
+            # audio_record.save()
+
+        return Response(log_data)
 
         
