@@ -8,7 +8,6 @@ from .serializers import AudioSerializer, ClientDevicesSerializer, FilteredAudio
 from datetime import datetime
 import pytz
 
-from API import serializers
 
 
 class AudioView(APIView):
@@ -32,6 +31,7 @@ class AudioView(APIView):
             print('Except: ', data)
 
         serializer = AudioSerializer(data=data)
+        # Device name is not validated as only approved device name appears on list
         if serializer.is_valid():
             serializer.save()
             return Response({"Acknowledge":"Successfully done."}, status=status.HTTP_201_CREATED)
@@ -82,14 +82,14 @@ class DeviceRegistration_AudioExtractionView(APIView):
                 serializer = AudioSerializer(record, many=True)
 
                 # extracting base64 format of audio only 
-                idx = serializer.data[0]['id']
-                audio_str = serializer.data[0]['audio_base64_text']
+                # idx = serializer.data[0]['id']
+                # audio_str = serializer.data[0]['audio_base64_text']
 
                 # formating the data into dictionary
-                data = {'audio_base64_text': audio_str}
+                data = {'audio_base64_text': serializer.data[0]['audio_base64_text']}#audio_str}
 
                 ## update
-                row = Audio.objects.get(id=idx)
+                row = Audio.objects.get(id=serializer.data[0]['id'])#idx)
                 row.is_sent = True
                 row.save()
 
@@ -110,43 +110,43 @@ class ClientDevicesListView(APIView):
     def get(self, request):
         # filtering approved devices from the database
         devices = ClientDevices.objects.filter(is_approved=True)
-        serializer = ClientDevicesSerializer(devices, many=True)
+        serializer_devices = ClientDevicesSerializer(devices, many=True)
         
-
         format = "%Y-%m-%dT%H:%M:%S"
         format_current = "%Y-%m-%d %H:%M:%S"
         #Updating request time
         try:
-            for data in serializer.data:
+            for data in serializer_devices.data:
                 data = dict(data)
-                device_name = data['device_name']
+                # device_name = data['device_name']
                 # split('.')[0] -> removes millisecond part
                 # print('last req time: ',  data['last_req_time'])
                 last_req_time = data['last_req_time'].split('.')[0]   # In string of ISO format, convert it into  datetime format.
                 last_req_time = datetime.strptime(last_req_time, format)
                 
-                current = datetime.strptime(datetime.now().strftime(format_current), format_current)
+                # current = datetime.strptime(datetime.now().strftime(format_current), format_current)
                 # print('current: ', current)
-                diff = current - last_req_time
-                diff_minutes = diff.total_seconds()/60
+                diff = datetime.strptime(datetime.now().strftime(format_current), format_current) - last_req_time
+                diff_minutes = diff.total_seconds()/60  # Calulated the time in minutes
                 # print('diff_minutes',diff_minutes)
                 
-                device_record = ClientDevices.objects.get(device_name=device_name)
-                print(device_record)
+                device_record = ClientDevices.objects.get(device_name=data['device_name'])
+                # print(device_record)
                 if diff_minutes > 2:
                     device_record.is_active = False
                 else:
                     device_record.is_active = True
                 device_record.save()
-                print(device_name, last_req_time, current, diff_minutes)
+                # print(device_name, last_req_time, current, diff_minutes)
         except:
             pass
 
         devices = ClientDevices.objects.all()
-        serializer = ClientDevicesSerializer(devices, many=True)
-        # print(serializer.data)
-        return Response(serializer.data)    # array of all filtered records
-
+        serializer_devices = ClientDevicesSerializer(devices, many=True)
+        audio_records = Audio.objects.filter(is_sent=True)
+        serializer_audio = AudioSerializer(audio_records, many=True)
+        # json of all devices in `devices` key and number of backupable records in `num_pending_records` key
+        return Response({'devices': serializer_devices.data, 'num_pending_records':len(serializer_audio.data)})    
 
 
 
