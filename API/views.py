@@ -1,3 +1,4 @@
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,7 +7,7 @@ from .serializers import AudioSerializer, ClientDevicesSerializer, FilteredAudio
 # from django.http import QueryDict
 # from http.client import HTTPResponse
 from datetime import datetime
-import pytz
+import json
 
 
 
@@ -171,7 +172,7 @@ class ClientDeviceApprovalView(APIView):
             return Response({'Acknowledge' : 'Not Approved'})
 
 
-class BackupAndDeleteView(APIView):
+class LogBackupAndDeleteView(APIView):
     def get(self, request):
         
         # Delete the records once the timestamp is 
@@ -189,6 +190,10 @@ class BackupAndDeleteView(APIView):
             # We need to delete the audio records after getting timestamp
             # audio_record.delete()
 
-        return Response(log_data)
+        response_body = []
+        for key, value in log_data.items():
+            response_body.append({'device_name':key, 'timestamp':value})
+        
+        return Response(response_body)
 
         
